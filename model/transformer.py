@@ -29,8 +29,8 @@ class EncoderLayer(nn.Module):
         self.norm2 = nn.LayerNorm(d_model)
         self.linear1 = nn.Linear(d_model, dim_feedforward)
         self.linear2 = nn.Linear(dim_feedforward, d_model)
-        # self.activation = _get_activation_fn(activation)
-        self.MLP = nn.Sequential(self.linear1, self.linear2)
+        self.activation = _get_activation_fn(activation)
+        self.MLP = nn.Sequential(self.linear1, self.linear2, activation)
         
     def forward(self, x):
         src1 = self.norm1(x)
@@ -44,7 +44,15 @@ class EncoderLayer(nn.Module):
         
         return src3
     
-
+    
+def _get_activation_fn(activation):
+    if activation == 'relu':
+        return F.relu
+    if activation == 'gelu':
+        return F.gelu
+    if activation == 'glu':
+        return F.glu
+    raise RuntimeError(f'activation should be relu/gelu, not{activation}.')
         
         
         
