@@ -78,11 +78,5 @@ def _get_activation_fn(activation):
     raise RuntimeError(f'activation should be relu/gelu, not{activation}.')
         
         
-x = torch.randn(1,64,512)
 
-model = Transformer(512, 16, 0.1,64,'gelu', 12)
-output = model(x)
-
-print(output.shape)
-        
         
