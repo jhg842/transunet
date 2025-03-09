@@ -4,24 +4,37 @@ import torch.nn as nn
 
 import torch.nn.functional as F
 
+import copy
 
 class Transformer(nn.Module):
-    def __init__(self, d_model, nhead, dropout, dim_feedforward, activation):
+    def __init__(self, d_model, nhead, dropout, dim_feedforward, activation, num_layers):
         super().__init__()
         
-        self.EncoderLayer = EncoderLayer(d_model, nhead, dropout, dim_feedforward, activation)
+        encoderlayer = EncoderLayer(d_model, nhead, dropout, dim_feedforward, activation)
         
-        self.transformerencoder = TransformerEncoder()
+        self.transformerencoder = TransformerEncoder(encoderlayer, num_layers)
+        
+    def forward(self, src):
+        bs, num_patches, d = src.shape
+        src2 = src.transpose(0,1)
+        
+        output = self.transformerencoder(src2)
+        
+        return output.permute(1,2,0)
         
         
 class TransformerEncoder(nn.Module):
-    def __init__(self, encoderlayer, num_layers):
+    def __init__(self, encoder_layer, num_layers):
+        super().__init__()
         self.layers = _get_repeat(encoder_layer, num_layers)
         self.num_layers = num_layers
         
-    def forward(self):
+    def forward(self,src):
+        
+        output = src
+        
         for layer in self.layers:
-            output = layer()
+            output = layer(output)
             
         return output
     
@@ -64,5 +77,12 @@ def _get_activation_fn(activation):
         return F.glu
     raise RuntimeError(f'activation should be relu/gelu, not{activation}.')
         
+        
+x = torch.randn(1,64,512)
 
+model = Transformer(512, 16, 0.1,64,'gelu', 12)
+output = model(x)
+
+print(output.shape)
+        
         
