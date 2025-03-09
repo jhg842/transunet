@@ -7,7 +7,7 @@ import torch.nn.functional as F
 import copy
 
 class Transformer(nn.Module):
-    def __init__(self, d_model, nhead, dropout, dim_feedforward, activation, num_layers):
+    def __init__(self, d_model, nhead, dropout, dim_feedforward, activation='gelu', num_layers):
         super().__init__()
         
         encoderlayer = EncoderLayer(d_model, nhead, dropout, dim_feedforward, activation)
@@ -78,5 +78,12 @@ def _get_activation_fn(activation):
     raise RuntimeError(f'activation should be relu/gelu, not{activation}.')
         
         
-
+def build_transformer(args):
+    return Transformer(
+        d_model = args.d_model,
+        nhead = args.nhead,
+        dropout = args.dropout,
+        dim_feedforward = args.dim_feedforward,
+        num_layers = args.num_layers,
+    )
         
