@@ -35,7 +35,7 @@ class BackboneBase(nn.Module):
 class Backbone(BackboneBase):
     def __init__(self, name, return_interm_layers):
         backbone = getattr(models, name)(pretrained=True)
-        backbone.maxpool = nn.Identity()
+        # backbone.maxpool = nn.Identity()
         # backbone.layer3[5].conv3 = nn.Conv2d(256, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
         # backbone.layer3[5].bn3 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         # backbone.layer3[0].downsample =nn.Sequential(nn.Conv2d(512, 512, kernel_size=1, stride=2, bias=False),nn.BatchNorm2d(512))
@@ -48,7 +48,7 @@ class Backbone(BackboneBase):
 #     print(model)
 #     img = torch.randn(1,3,224,224)
 #     output = model(img)
-#     print(output['2'].shape)
+#     print(output['1'].shape)
      
 def build_backbone(name, return_interm_layers):
     # return_interm_layers = args.layers

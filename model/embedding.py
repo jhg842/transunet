@@ -1,36 +1,42 @@
 import torch
 from torch import nn
 
-from model.backbone import build_backbone
+from backbone import build_backbone
 
 
 class PositionEmbedding(nn.Module):
-    def __init__(self, backbone, patch_size, num_patches):
+    def __init__(self, backbone,  patch_size, vec_dim, position:bool):
         super().__init__()
         
         self.backbone = backbone
         self.patch_size = patch_size
-        # self.num_patches = num_patches
         
         # self.linear = nn.Linear()
         # self.patch_embedding = nn.Conv2d(in, out, )
-        # self.position = nn.Parameter(torch.randn(1, num_patches, vec_dim))
+        self.position = nn.Parameter(torch.randn(1, num_patches**2, vec_dim))
         
         
         
     def forward(self, x):
         
         x = self.backbone(x)['2']
+        # x = self.patch_embedding(x)
         B, C, H, W = x.shape
-        num_patches = H // self.patch_size
-        x = x.view(B, C, num_patches, self.patch_size, num_patches, self.patch_size)
-        x = x.permute(0,2,4,1,3,5)
-        x = x.contiguous().view(B, num_patches**2, C*self.patch_size*self.patch_size)
+        x = x.view(B,C, H*W)
+        x = x.transpose(1,2)
+        
+        if position:
+            x += self.position
     
         return x
         
 x = torch.randn(1,3,224,224)
 backbone = build_backbone('resnet50', True)
 
-model = PositionEmbedding(backbone, 2,None)
+model = PositionEmbedding(backbone, 14, 1024)
 print(model(x).shape)
+
+def build_embedding(args):
+    
+    backbone = args.backbone
+    return PositionEmbedding(backbone, args.patch_size, args.vec_dim, args.position)
