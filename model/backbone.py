@@ -16,7 +16,7 @@ class BackboneBase(nn.Module):
             if 'layer2' not in name and 'layer3' not in name:
                 parameter.requires_grad_(False)
         if return_interm_layers:
-            return_layers = {'layer1': '0', 'layer2': '1', 'layer3': '2'}
+            return_layers = {'layer1': '0', 'layer2': '1', 'layer3': '2', 'layer4': '3'}
             
         else:
             return_layers = {'layer4': '0'}
@@ -39,22 +39,22 @@ class Backbone(BackboneBase):
         # backbone.layer3[5].conv3 = nn.Conv2d(256, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
         # backbone.layer3[5].bn3 = nn.BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
         # backbone.layer3[0].downsample =nn.Sequential(nn.Conv2d(512, 512, kernel_size=1, stride=2, bias=False),nn.BatchNorm2d(512))
-        num_channels = 512 if name in ('resnet18', 'resnet34') else 2048
+        num_channels = 512 if name in ('resnet18', 'resnet34') else 1024
         super().__init__(backbone, num_channels, return_interm_layers)
         
 
-# if __name__ == '__main__':
-#     model = Backbone('resnet50', True)
-#     print(model)
-#     img = torch.randn(1,3,224,224)
-#     output = model(img)
-#     print(output['1'].shape)
+if __name__ == '__main__':
+    model = Backbone('resnet50', True)
+    print(model)
+    img = torch.randn(1,3,256,256)
+    output = model(img)
+    print(output['3'].shape)
      
-def build_backbone(name, return_interm_layers):
-    # return_interm_layers = args.layers
-    backbone = Backbone(name, return_interm_layers)
+# def build_backbone(name, return_interm_layers):
+#     # return_interm_layers = args.layers
+#     backbone = Backbone(name, return_interm_layers)
     
-    return backbone         
+#     return backbone         
         
 
 # model = models.resnet50(pretrained=True)
