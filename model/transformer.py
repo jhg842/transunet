@@ -7,15 +7,15 @@ import torch.nn.functional as F
 import copy
 
 class Transformer(nn.Module):
-    def __init__(self, d_model, nhead, dropout, dim_feedforward, activation='gelu', num_layers):
+    def __init__(self, d_model, n_head, dropout, dim_feedforward, num_layers, activation='gelu'):
         super().__init__()
         
-        encoderlayer = EncoderLayer(d_model, nhead, dropout, dim_feedforward, activation)
+        encoderlayer = EncoderLayer(d_model, n_head, dropout, dim_feedforward, activation)
         
         self.transformerencoder = TransformerEncoder(encoderlayer, num_layers)
         
     def forward(self, src):
-        bs, num_patches, d = src.shape
+        bs, num_patches, d = src.size()
         src2 = src.transpose(0,1)
         
         output = self.transformerencoder(src2)
@@ -39,10 +39,10 @@ class TransformerEncoder(nn.Module):
         return output
     
 class EncoderLayer(nn.Module):
-    def __init__(self, d_model, nhead, dropout, dim_feedforward, activation):
+    def __init__(self, d_model, n_head, dropout, dim_feedforward, activation):
         super().__init__()
         
-        self.attention = nn.MultiheadAttention(d_model, nhead, dropout = dropout)
+        self.attention = nn.MultiheadAttention(d_model, n_head, dropout = dropout)
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
         self.linear1 = nn.Linear(d_model, dim_feedforward)
@@ -76,12 +76,13 @@ def _get_activation_fn(activation):
     if activation == 'glu':
         return F.glu
     raise RuntimeError(f'activation should be relu/gelu, not{activation}.')
-        
+
+    
         
 def build_transformer(args):
     return Transformer(
         d_model = args.d_model,
-        nhead = args.nhead,
+        n_head = args.n_head,
         dropout = args.dropout,
         dim_feedforward = args.dim_feedforward,
         num_layers = args.num_layers,
