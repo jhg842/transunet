@@ -44,7 +44,7 @@ class DiceLoss(nn.Module):
         intersect = torch.sum(score * target)
         y_sum = torch.sum(target * target)
         z_sum = torch.sum(score * score)
-        loss = (2 * intersect + smooth) / (z_sum + y_sum, smooth)
+        loss = (2 * intersect + smooth) / (z_sum + y_sum + smooth)
         loss = 1 - loss
         
         return loss
