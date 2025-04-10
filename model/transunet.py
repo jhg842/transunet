@@ -50,7 +50,7 @@ class DiceLoss(nn.Module):
         return loss
     
     
-    def forwrad(self, inputs, target, weight = None, softmax=False):
+    def forward(self, inputs, target, weight = None, softmax=False):
         if softmax:
             inputs = torch.softmax(inputs, dim=1)
         target = self._one_hot_encoding(target)
