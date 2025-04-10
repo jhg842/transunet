@@ -8,7 +8,7 @@ import sys
 import util.misc as utils
 
 
-def train_one_epoch(model, ce_loss, dice_loss, data_loader, optimizer, device, epoch):
+def train_one_epoch(model, ce_loss, dice_loss, data_loader, optimizer, device):
     
     model.train()
     

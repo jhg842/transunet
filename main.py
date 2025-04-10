@@ -47,7 +47,7 @@ def get_args_parser():
     
     
     parser.add_argument('--dataset_file', default='NG', type=str)
-    parser.add_argument('--NG_path', type=str)
+    parser.add_argument('--NG_path', default='', type=str)
     parser.add_argument('--output_dir',default='', type=str)
     parser.add_argument('--seed', default=777, type=int)
     
@@ -86,21 +86,21 @@ def main(args):
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
     
     dataset_train = build_dataset(image_set = 'train', args=args)
-    dataset_test = build_dataset(image_set = 'test', args=args)
+    dataset_val = build_dataset(image_set = 'val', args=args)
     
     if args.distributed:
         sampler_train = DistributedSampler(dataset_train)
-        sampler_test = DistributedSampler(dataset_test, shuffle = False)
+        sampler_val = DistributedSampler(dataset_val, shuffle = False)
     else:
         sampler_train = torch.utils.data.RandomSampler(dataset_train)
-        sampler_test = torch.utils.data.SequentialSampler(dataset_test)    
+        sampler_val = torch.utils.data.SequentialSampler(dataset_val)    
 
     batch_sampler_train = torch.utils.data.BatchSampler(
         sampler_train, args.batch_size, drop_last = True)
     
     data_loader_train = DataLoader(dataset_train, batch_sampler = batch_sampler_train,
                                   num_workers = args.num_workers)
-    data_loader_test = DataLoader(dataset_test, args_batch_size, sampler = sampler_test,
+    data_loader_val = DataLoader(dataset_val, args_batch_size, sampler = sampler_val,
                                   drop_last = False)
     
     output_dir = Path(args.output_dir)
@@ -111,7 +111,7 @@ def main(args):
     for epoch in range(args.epochs):
         if args.distributed:
             sampler_train.set_epoch(epoch)
-        train_stats = train_one_epoch(model, cross_loss, dice_loss, data_loader_train, optimizer, device, epoch)
+        train_stats = train_one_epoch(model, cross_loss, dice_loss, data_loader_train, optimizer, device)
         lr_scheduler.step()
         if args.output_dir:
             checkpoint_paths = [output_dir / 'checkpoint.pth']
