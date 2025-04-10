@@ -49,6 +49,7 @@ def get_args_parser():
     parser.add_argument('--dataset_file', default='NG', type=str)
     parser.add_argument('--NG_path', default='', type=str)
     parser.add_argument('--output_dir',default='', type=str)
+    parser.add_argument('--num_workers', default=4, type=int)
     parser.add_argument('--seed', default=777, type=int)
     
     parser.add_argument('--device', default='cuda', help='device to use for training / testing')
