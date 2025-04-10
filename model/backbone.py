@@ -44,18 +44,13 @@ class Backbone(BackboneBase):
         super().__init__(backbone, num_channels, return_interm_layers)
         
 
-if __name__ == '__main__':
-    model = Backbone('resnet50', True)
-    print(model)
-    img = torch.randn(1,3,256,256)
-    output = model(img)
-    print(output['0'].shape)
+
      
-# def build_backbone(args):
-#     return_interm_layers = args.layers
-#     backbone = Backbone(args.backbone, return_interm_layers)
+def build_backbone(args):
+    return_interm_layers = args.layers
+    backbone = Backbone(args.backbone, return_interm_layers)
     
-#     return backbone         
+    return backbone         
         
 
 # model = models.resnet50(pretrained=True)
