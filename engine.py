@@ -13,8 +13,8 @@ def train_one_epoch(model, ce_loss, dice_loss, data_loader, optimizer, device):
     model.train()
     
     for samples, targets in data_loader:
-        samples.to(device)
-        targets.to(device)
+        samples = samples.to(device)
+        targets = targets.to(device)
         
         outputs = model(samples)
         loss_ce = ce_loss(outputs, targets)
@@ -22,7 +22,7 @@ def train_one_epoch(model, ce_loss, dice_loss, data_loader, optimizer, device):
         loss =  0.5 * loss_ce + 0.5 * loss_dice
         
         optimizer.zero_grad()
-        losses.backward()
+        loss.backward()
         optimizer.step()
         
 # @ torch.no_grad()
