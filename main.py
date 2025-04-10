@@ -1,6 +1,21 @@
 import argparse
+import os
+import random
+import time
+import datetime
+
+from pathlib import Path
+import numpy as np
+
 import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, DistributedSampler
+
 from model import build_model
+from dataset import build_dataset
+import util.misc as utils
+from engine import train_one_epoch
+
 
 def get_args_parser():
     parser = argparse.ArgumentParser('Set transunet', add_help=False)
@@ -37,15 +52,85 @@ def get_args_parser():
     parser.add_argument('--seed', default=777, type=int)
     
     parser.add_argument('--device', default='cuda', help='device to use for training / testing')
+    parser.add_argument('--world_size', default=1, type=int, help='number of distributed processes')
+    parser.add_argument('--dist_url', default='env://', help = 'url sued to set up distributed training')    
     
     return parser
     
 def main(args):
 
+    utils.init_distributed_mode(args)
 
-    model= build_model(args)
-    x = torch.randn(1,3,256,256) 
-    print(model(x).shape)   
+    device = torch.device(args.device)
+    
+    seed = args.seed
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    
+    model, dice_loss = build_model(args)
+    cross_loss = nn.CrossEntropyLoss()
+    model.to(device)
+    
+    model_withiout_ddp = model
+    if args.distributed:
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu], find_unused_parameters=True)
+        model_withiout_ddp = model.module
+    n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
+    param_dicts = [
+        {'params': [p for p in model.parameters() if p.requires_grad]},
+    ]
+    
+    optimizer = torch.optim.AdamW(param_dicts, lr = args.lr, weight_decay = args.weight_decay)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
+    
+    dataset_train = build_dataset(image_set = 'train', args=args)
+    dataset_test = build_dataset(image_set = 'test', args=args)
+    
+    if args.distributed:
+        sampler_train = DistributedSampler(dataset_train)
+        sampler_test = DistributedSampler(dataset_test, shuffle = False)
+    else:
+        sampler_train = torch.utils.data.RandomSampler(dataset_train)
+        sampler_test = torch.utils.data.SequentialSampler(dataset_test)    
+
+    batch_sampler_train = torch.utils.data.BatchSampler(
+        sampler_train, args.batch_size, drop_last = True)
+    
+    data_loader_train = DataLoader(dataset_train, batch_sampler = batch_sampler_train,
+                                  num_workers = args.num_workers)
+    data_loader_test = DataLoader(dataset_test, args_batch_size, sampler = sampler_test,
+                                  drop_last = False)
+    
+    output_dir = Path(args.output_dir)
+    
+    
+    print("Start training")
+    start_time = time.time()
+    for epoch in range(args.epochs):
+        if args.distributed:
+            sampler_train.set_epoch(epoch)
+        train_stats = train_one_epoch(model, cross_loss, dice_loss, data_loader_train, optimizer, device, epoch)
+        lr_scheduler.step()
+        if args.output_dir:
+            checkpoint_paths = [output_dir / 'checkpoint.pth']
+            if (epoch + 1) % 50 == 0:
+                checkpoint_paths.append(otuput_dir / f'checkpoit{epoch:04}.pth')
+            
+            for checkpoint_path in checkpoint_paths:
+                utils.save_on_master({
+                    'model': model_withiout_ddp.state_dict(),
+                    'optimizer': optimizer.state_dict(),
+                    'lr_scheduler': lr_scheduler.state_dict(),
+                    'epoch': epoch,
+                    'args':args,
+                }, checkpoint_path)
+
+    total_time = time.time() - start_time
+    total_time_str = str(datetime.timedelta(seconds = int(total_time)))
+    print('Training time {}'.format(total_time_str))    
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('TransUnet training and evaluation script', parents=[get_args_parser()])
     args = parser.parse_args()

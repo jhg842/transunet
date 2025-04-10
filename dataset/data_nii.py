@@ -1,6 +1,4 @@
-import torch
-from torch.utils.data import Dataset
-
+from pathlib import Path
 import os
 import random
 import numpy as np
@@ -62,4 +60,21 @@ class NiiSliceDataset(Dataset):
 
         return img, label
     
+# def transforms(image_set):
+    
 
+
+def build_nii(image_set, args):
+    root = Path(args.NG_path)
+    assert root.exists(), f'provided NiiSliceDataset path {root} does not exist'
+    mode = 'train'
+    
+    PATHS = {
+        "train": (root / "RawData"/ "Training"/"img", root / "RawData"/ "Training"/"label"),
+        "val": (root / "RawData"/ "Val"/"img", root / "RawData"/ "Val"/"label"),
+    }
+    
+    img_folder, label_folder = PATHS[image_set]
+    dataset = NiiSliceDataset(img_folder, label_folder)
+    
+    return dataset
