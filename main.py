@@ -101,7 +101,7 @@ def main(args):
     
     data_loader_train = DataLoader(dataset_train, batch_sampler = batch_sampler_train,
                                   num_workers = args.num_workers)
-    data_loader_val = DataLoader(dataset_val, args_batch_size, sampler = sampler_val,
+    data_loader_val = DataLoader(dataset_val, args.batch_size, sampler = sampler_val,
                                   drop_last = False)
     
     output_dir = Path(args.output_dir)
