@@ -32,7 +32,7 @@ def get_args_parser():
     
     # Embedding
     parser.add_argument('--patch_size', default=1, type=int)
-    parser.add_argument('--num_patches', default=16, type=int)
+    parser.add_argument('--num_patches', default=32, type=int)
     parser.add_argument('--d_model', default=2048, type=int)
     parser.add_argument('--input_dim', default=784, type=int)
     parser.add_argument('--hidden_dim', default=2048, type=int)
