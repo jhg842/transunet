@@ -43,7 +43,7 @@ def get_args_parser():
     parser.add_argument('--dim_feedforward', default=2048, type=int)
     parser.add_argument('--num_layers', default=12, type=int)
     
-    parser.add_argument('--n_classes', default=8, type=int)
+    parser.add_argument('--n_classes', default=14, type=int)
     
     
     parser.add_argument('--dataset_file', default='NG', type=str)
