@@ -109,6 +109,6 @@ def build_nii(image_set, args):
     }
     
     img_folder, label_folder = PATHS[image_set]
-    dataset = NiiSliceDataset(img_folder, label_folder, transform = transforms(image_set))
+    dataset = NiiSliceDataset(img_folder, label_folder, transform = JointTransform(image_set))
     
     return dataset
