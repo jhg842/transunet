@@ -9,6 +9,7 @@ import nibabel as nib
 import os
 import nibabel as nib
 import numpy as np
+from scipy import ndimage
 import torch
 import torchvision
 import torchvision.transforms as T
@@ -82,11 +83,16 @@ class JointTransform:
         if self.image_set == 'train':
         
             if random.random() > 0.5:
-                img = T.functional.hflip(img)
-                label = T.functional.hflip(label)
-            if random.random() > 0.5:
-                img = T.functional.vflip(img)
-                label = T.functional.vflip(label)
+                k = np.random.randint(0, 4)
+                image = np.rot90(image, k)
+                label = np.rot90(label, k)
+                axis = np.random.randint(0, 2)
+                image = np.flip(image, axis=axis).copy()
+                label = np.flip(label, axis=axis).copy()
+            elif random.random() > 0.5:
+                angle = np.random.randint(-20, 20)
+                image = ndimage.rotate(image, angle, order=0, reshape=False)
+                label = ndimage.rotate(label, angle, order=0, reshape=False)
 
             img = self.image_transform(img)
             label = self.label_transform(label)
@@ -96,12 +102,12 @@ class JointTransform:
         elif self.image_set == 'val':
             img = self.image_transform(img)
             label = self.label_transform(label)
+            
             return img, label
 
 def build_nii(image_set, args):
     root = Path(args.NG_path)
     assert root.exists(), f'provided NiiSliceDataset path {root} does not exist'
-    mode = 'train'
     
     PATHS = {
         "train": (root / "RawData"/ "Training"/"img", root / "RawData"/ "Training"/"label"),
