@@ -128,8 +128,9 @@ def main(args):
                     'args':args,
                 }, checkpoint_path)
                 
-        print(f'Epoch: {epoch}', 'Loss: {train_stats["loss"]:.4f}',
-              'Dice Loss: {train_stats["loss_dice"]:.4f}', 'CE Loss: {train_stats["loss_ce"]:.4f}')
+        print(f'Epoch: {epoch}, Loss: {train_stats["loss"]:.4f},
+              Dice Loss: {train_stats["loss_dice"]:.4f}, CE Loss: {train_stats["loss_ce"]:.4f}')
+        
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds = int(total_time)))
     print('Training time {}'.format(total_time_str))    
