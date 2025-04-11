@@ -63,43 +63,40 @@ class NiiSliceDataset(Dataset):
             img, label = self.transform(img, label)
 
         return img, label
-    
+
+def random_rot_flip(image, label):
+    k = np.random.randint(0, 4)
+    image = np.rot90(image, k)
+    label = np.rot90(label, k)
+    axis = np.random.randint(0, 2)
+    image = np.flip(image, axis=axis).copy()
+    label = np.flip(label, axis=axis).copy()
+    return image, label
+
+
+def random_rotate(image, label):
+    angle = np.random.randint(-20, 20)
+    image = ndimage.rotate(image, angle, order=0, reshape=False)
+    label = ndimage.rotate(label, angle, order=0, reshape=False)
+    return image, label
+
+
 class JointTransform:
     
     def __init__(self, image_set):
         self.image_set = image_set
         
-        self.image_transform = T.Compose([
-            
-            T.Resize((256,256)),
-        ])
 
-        self.label_transform = T.Compose([
-            T.Resize([256,256], interpolation = T.InterpolationMode.NEAREST),
-          
-        ])
         
     def __call__(self, img, label):
         
-        if self.image_set == 'train':
-        
-            if random.random() > 0.5:
-                k = np.random.randint(0, 4)
-                img = np.rot90(img, k)
-                label = np.rot90(label, k)
-                axis = np.random.randint(0, 2)
-                img = np.flip(img, axis=axis).copy()
-                label = np.flip(label, axis=axis).copy()
-            elif random.random() > 0.5:
-                angle = np.random.randint(-20, 20)
-                img = ndimage.rotate(img, angle, order=0, reshape=False)
-                label = ndimage.rotate(label, angle, order=0, reshape=False)
-                
+        if random.random() > 0.5:
+            img, label = random_rot_flip(img, label)
+        elif random.random() > 0.5:
+            img, label = random_rotate(img, label)
+            
         img = torch.from_numpy(img.astype(np.float32)).unsqueeze(0)
-        label = torch.from_numpy(label.astype(np.float32))
-        
-        img = self.image_transform(img)
-        label = self.label_transform(label)
+        label = torch.from_numpy(label.astype(np.float32)).unsqueeze(0)
         
         return img, label
         
