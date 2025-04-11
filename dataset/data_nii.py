@@ -51,8 +51,8 @@ class NiiSliceDataset(Dataset):
         # Normalize 이미지 (0~1 정규화)
         img = (img - np.min(img)) / (np.max(img) - np.min(img) + 1e-8)
 
+
         # Add channel dimension: (1, H, W)
-        img = np.expand_dims(img, axis=0)
         # label = np.expand_dims(label, axis=0)  # 선택: 필요 없을 수도 있음
 
         # Tensor 변환
@@ -70,13 +70,13 @@ class JointTransform:
         self.image_set = image_set
         
         self.image_transform = T.Compose([
-            T.ToTensor(),
+            
             T.Resize((256,256)),
         ])
 
         self.label_transform = T.Compose([
             T.Resize([256,256], interpolation = T.InterpolationMode.NEAREST),
-            T.ToTensor(),
+          
         ])
         
     def __call__(self, img, label):
@@ -95,8 +95,8 @@ class JointTransform:
                 img = ndimage.rotate(img, angle, order=0, reshape=False)
                 label = ndimage.rotate(label, angle, order=0, reshape=False)
                 
-        img = Image.fromarray(img.astype(np.uint8))
-        label = Image.fromarray(label.astype(np.uint8))
+        img = torch.from_numpy(img.astype(np.float32)).unsqueeze(0)
+        label = torch.from_numpy(label.astype(np.float32))
         
         img = self.image_transform(img)
         label = self.label_transform(label)
