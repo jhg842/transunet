@@ -17,8 +17,8 @@ from torch.utils.data import Dataset
 class NiiSliceDataset(Dataset):
     def __init__(self, data_dir, label_dir, transform):
         self.data_slices = []  # (img_path, label_path, slice_index) 리스트 저장
-        self.transform = JointTransform()
-
+        self.transform = transform
+        
         # 이미지-라벨 파일 목록 정렬 (파일 이름이 일치한다고 가정)
         img_files = sorted([f for f in os.listdir(data_dir) if f.endswith('.nii.gz')])
         label_files = sorted([f for f in os.listdir(label_dir) if f.endswith('.nii.gz')])
@@ -64,7 +64,9 @@ class NiiSliceDataset(Dataset):
     
 class JointTransform:
     
-    def __init__(self):
+    def __init__(self, image_set):
+        self.image_set = image_set
+        
         self.image_transform = T.Compose([
             T.ToTensor(),
             T.Resize((256,256)),
@@ -77,17 +79,24 @@ class JointTransform:
         
     def __call__(self, img, label):
         
-        if random.random() > 0.5:
-            img = T.functional.hflip(img)
-            label = T.functional.hflip(label)
-        if random.random() > 0.5:
-            img = T.functional.vflip(img)
-            label = T.functional.vflip(label)
-
-        img = self.image_transform(img)
-        label = self.label_transform(label)
+        if self.image_set == 'train':
         
-        return img, label
+            if random.random() > 0.5:
+                img = T.functional.hflip(img)
+                label = T.functional.hflip(label)
+            if random.random() > 0.5:
+                img = T.functional.vflip(img)
+                label = T.functional.vflip(label)
+
+            img = self.image_transform(img)
+            label = self.label_transform(label)
+        
+            return img, label
+        
+        elif self.image_set == 'val':
+            img = self.image_transform(img)
+            label = self.label_transform(label)
+            return img, label
 
 def build_nii(image_set, args):
     root = Path(args.NG_path)
