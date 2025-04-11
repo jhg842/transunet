@@ -15,9 +15,9 @@ import torchvision.transforms as T
 from torch.utils.data import Dataset
 
 class NiiSliceDataset(Dataset):
-    def __init__(self, data_dir, label_dir, transform=None):
+    def __init__(self, data_dir, label_dir, transform):
         self.data_slices = []  # (img_path, label_path, slice_index) 리스트 저장
-        self.transform = transform
+        self.transform = JointTransform()
 
         # 이미지-라벨 파일 목록 정렬 (파일 이름이 일치한다고 가정)
         img_files = sorted([f for f in os.listdir(data_dir) if f.endswith('.nii.gz')])
@@ -47,7 +47,7 @@ class NiiSliceDataset(Dataset):
         label = nib.load(label_path).get_fdata()[:, :, slice_idx]
 
         # Normalize 이미지 (0~1 정규화)
-        # img = (img - np.min(img)) / (np.max(img) - np.min(img) + 1e-8)
+        img = (img - np.min(img)) / (np.max(img) - np.min(img) + 1e-8)
 
         # Add channel dimension: (1, H, W)
         img = np.expand_dims(img, axis=0)
@@ -62,27 +62,32 @@ class NiiSliceDataset(Dataset):
 
         return img, label
     
-def transforms(image_set):
-    normalize = T.Compose([
-        T.ToTensor(),
-        T.Normalize(mean=[0.5], std=[0.5]),
-    ])
+class JointTransform:
     
-    if image_set == 'train':
-        return T.Compose([
-    T.RandomRotation(degrees=20),       # -20도 ~ +20도 회전
-    T.RandomHorizontalFlip(p=0.5),      # 가로 뒤집기
-    T.RandomVerticalFlip(p=0.5),        # 세로 뒤집기
-    T.Resize((256, 256)),               # 크기 조정
-    normalize                       # Tensor로 변환
-])
-    
-    if image_set == 'val':
-        return T.Compose([
-            T.Resize((256, 256)),               # 크기 조정
-            normalize                       # Tensor로 변환
+    def __init__(self):
+        self.image_transform = T.Compose([
+            T.ToTensor(),
+            T.Resize((256,256)),
         ])
 
+        self.label_transform = T.Compose([
+            T.Resize([256,256], interpolation = T.InterpolationMode.NEAREST),
+            T.ToTensor(),
+        ])
+        
+    def __call__(self, img, label):
+        
+        if random.random() > 0.5:
+            img = T.functional.hflip(img)
+            label = T.functional.hflip(label)
+        if random.random() > 0.5:
+            img = T.functional.vflip(img)
+            label = T.functional.vflip(label)
+
+        img = self.image_transform(img)
+        label = self.label_transform(label)
+        
+        return img, label
 
 def build_nii(image_set, args):
     root = Path(args.NG_path)
