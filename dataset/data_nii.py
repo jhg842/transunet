@@ -84,26 +84,22 @@ class JointTransform:
         
             if random.random() > 0.5:
                 k = np.random.randint(0, 4)
-                image = np.rot90(image, k)
+                img = np.rot90(img, k)
                 label = np.rot90(label, k)
                 axis = np.random.randint(0, 2)
-                image = np.flip(image, axis=axis).copy()
+                img = np.flip(img, axis=axis).copy()
                 label = np.flip(label, axis=axis).copy()
             elif random.random() > 0.5:
                 angle = np.random.randint(-20, 20)
-                image = ndimage.rotate(image, angle, order=0, reshape=False)
+                img = ndimage.rotate(img, angle, order=0, reshape=False)
                 label = ndimage.rotate(label, angle, order=0, reshape=False)
 
-            img = self.image_transform(img)
-            label = self.label_transform(label)
+        img = self.image_transform(img)
+        label = self.label_transform(label)
         
-            return img, label
+        return img, label
         
-        elif self.image_set == 'val':
-            img = self.image_transform(img)
-            label = self.label_transform(label)
-            
-            return img, label
+ 
 
 def build_nii(image_set, args):
     root = Path(args.NG_path)
