@@ -10,7 +10,8 @@ import os
 import nibabel as nib
 import numpy as np
 import torch
-import datasets.transforms as T
+import torchvision
+import torchvision.transforms as T
 from torch.utils.data import Dataset
 
 class NiiSliceDataset(Dataset):
