@@ -54,15 +54,26 @@ class DiceLoss(nn.Module):
         if softmax:
             inputs = torch.softmax(inputs, dim=1)
         target = self._one_hot_encoding(target)
+        
         if weight is None:
             weight = [1] * self.n_classes
+            
         assert inputs.size() == target.size(), f'predict {inputs.size()} & target {target.size()} shape do not match'
+        
         class_with_dice = []
         loss = 0.0
+        valid_class_count = 0
+        
         for i in range(self.n_classes):
+            if torch.sum(target[:, i]) == 0:
+                continue
             dice = self._dice_loss(inputs[:, i], target[:, i])
             class_with_dice.append(1 - dice.item())
             loss += dice * weight[i]
+            valid_class_count += 1
+            
+        if valid_class_count == 0:
+            return torch.tensor(0.0, device = inputs.device)
             
         return loss / self.n_classes
 
