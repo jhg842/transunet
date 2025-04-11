@@ -14,6 +14,7 @@ import torch
 import torchvision
 import torchvision.transforms as T
 from torch.utils.data import Dataset
+from PIL import Image
 
 class NiiSliceDataset(Dataset):
     def __init__(self, data_dir, label_dir, transform):
@@ -93,7 +94,10 @@ class JointTransform:
                 angle = np.random.randint(-20, 20)
                 img = ndimage.rotate(img, angle, order=0, reshape=False)
                 label = ndimage.rotate(label, angle, order=0, reshape=False)
-
+                
+        img = Image.fromarray(img.astype(np.uint8))
+        label = Image.fromarray(label.astype(np.uint8))
+        
         img = self.image_transform(img)
         label = self.label_transform(label)
         
