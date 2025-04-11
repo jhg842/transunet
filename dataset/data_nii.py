@@ -10,6 +10,7 @@ import os
 import nibabel as nib
 import numpy as np
 import torch
+import datasets.transforms as T
 from torch.utils.data import Dataset
 
 class NiiSliceDataset(Dataset):
@@ -45,23 +46,41 @@ class NiiSliceDataset(Dataset):
         label = nib.load(label_path).get_fdata()[:, :, slice_idx]
 
         # Normalize 이미지 (0~1 정규화)
-        img = (img - np.min(img)) / (np.max(img) - np.min(img) + 1e-8)
+        # img = (img - np.min(img)) / (np.max(img) - np.min(img) + 1e-8)
 
         # Add channel dimension: (1, H, W)
         img = np.expand_dims(img, axis=0)
         # label = np.expand_dims(label, axis=0)  # 선택: 필요 없을 수도 있음
 
         # Tensor 변환
-        img = torch.tensor(img, dtype=torch.float32)
-        label = torch.tensor(label, dtype=torch.long)
+        # img = torch.tensor(img, dtype=torch.float32)
+        # label = torch.tensor(label, dtype=torch.long)
 
         if self.transform:
             img, label = self.transform(img, label)
 
         return img, label
     
-# def transforms(image_set):
+def transforms(image_set):
+    normalize = T.Compose([
+        T.ToTensor(),
+        T.Normalize(mean=[0.5], std=[0.5]),
+    ])
     
+    if image_set == 'train':
+        return T.Compose([
+    T.RandomRotation(degrees=20),       # -20도 ~ +20도 회전
+    T.RandomHorizontalFlip(p=0.5),      # 가로 뒤집기
+    T.RandomVerticalFlip(p=0.5),        # 세로 뒤집기
+    T.Resize((256, 256)),               # 크기 조정
+    normalize                       # Tensor로 변환
+])
+    
+    if image_set == 'val':
+        return T.Compose([
+            T.Resize((256, 256)),               # 크기 조정
+            normalize                       # Tensor로 변환
+        ])
 
 
 def build_nii(image_set, args):
@@ -75,6 +94,6 @@ def build_nii(image_set, args):
     }
     
     img_folder, label_folder = PATHS[image_set]
-    dataset = NiiSliceDataset(img_folder, label_folder)
+    dataset = NiiSliceDataset(img_folder, label_folder, transform = transforms(image_set))
     
     return dataset
