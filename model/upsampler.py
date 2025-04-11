@@ -29,7 +29,7 @@ class DecoderCup(nn.Module):
         super().__init__()
         
         self.d_model = d_model
-        self.conv1 = Conv2ReLU(2048,1024,kernel_size=3)
+        self.conv1 = Conv2ReLU(d_model,1024,kernel_size=3)
         self.decoder1 = DecoderBlock(2048, 512,)
         self.decoder2 = DecoderBlock(1024, 256)
         self.decoder3 = DecoderBlock(512, 128)

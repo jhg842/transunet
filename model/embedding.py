@@ -10,7 +10,7 @@ class PositionEmbedding(nn.Module):
         
         self.patch_size = patch_size
         
-        self.patch_embedding = nn.Conv2d(d_model, d_model, kernel_size=patch_size, stride=patch_size)
+        self.patch_embedding = nn.Conv2d(2048, d_model, kernel_size=patch_size, stride=patch_size)
         self.position = nn.Parameter(torch.randn(1, num_patches**2, d_model))
         
         
