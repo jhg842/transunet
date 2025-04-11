@@ -25,6 +25,11 @@ def train_one_epoch(model, ce_loss, dice_loss, data_loader, optimizer, device):
         loss.backward()
         optimizer.step()
         
+    return {
+        'loss_ce': loss_ce.item(),
+        'loss_dice': loss_dice.item(),
+        'loss': loss.item()
+    }
 # @ torch.no_grad()
 # def evaluate(model):
     
