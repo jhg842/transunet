@@ -92,11 +92,11 @@ class JointTransform:
         
         if random.random() > 0.5:
             img, label = random_rot_flip(img, label)
-        elif random.random() > 0.5:
+        if random.random() > 0.5:
             img, label = random_rotate(img, label)
             
         img = torch.from_numpy(img.astype(np.float32)).unsqueeze(0)
-        label = torch.from_numpy(label.astype(np.float32)).unsqueeze(0)
+        label = torch.from_numpy(label).long()
         
         return img, label
         
@@ -115,3 +115,6 @@ def build_nii(image_set, args):
     dataset = NiiSliceDataset(img_folder, label_folder, transform = JointTransform(image_set))
     
     return dataset
+
+
+# /mnt/d/Users/jhg84/Downloads

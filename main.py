@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader, DistributedSampler
 from model import build_model
 from dataset import build_dataset
 import util.misc as utils
-from engine import train_one_epoch
+from engine import train_one_epoch, evaluate
 
 
 def get_args_parser():
@@ -128,10 +128,12 @@ def main(args):
                     'args':args,
                 }, checkpoint_path)
                 
+        val_loss = evaluate(model, cross_loss, dice_loss, data_loader_val, device)
+            
+                
         print(
-    f'Epoch: {epoch}, Loss: {train_stats["loss"]:.4f}, '
-    f'Dice Loss: {train_stats["loss_dice"]:.4f}, CE Loss: {train_stats["loss_ce"]:.4f}'
-)
+        f'Epoch: {epoch}, Loss: {train_stats["loss"]:.4f}, '
+        f'Dice Loss: {train_stats["loss_dice"]:.4f}, CE Loss: {train_stats["loss_ce"]:.4f}', f'Val loss: {val_loss:.4f}',)
         
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds = int(total_time)))
