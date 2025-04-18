@@ -104,6 +104,7 @@ class JointTransform:
 
 def build_nii(image_set, args):
     root = Path(args.NG_path)
+    print(f"Looking for data at: {root}")
     assert root.exists(), f'provided NiiSliceDataset path {root} does not exist'
     
     PATHS = {
